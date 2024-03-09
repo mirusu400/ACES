@@ -50,7 +50,12 @@ then
   cd ${PROJECT_ROOT_DIR}/gcc
   if [ ! -e gcc-arm-none-eabi-6-2017-q1-update/pkg ]
   then
+    file_size=$(wc -c < ${COMPILER_DIR}/3rd_party/gcc-arm-none-eabi-6-2017-q1-update-src.tar.bz2)
 
+    if [ "$file_size" -lt 1024 ]; then
+        echo "Downloading GCC"
+      wget -O ${COMPILER_DIR}/3rd_party/gcc-arm-none-eabi-6-2017-q1-update-src.tar.bz2 "https://developer.arm.com/-/media/Files/downloads/gnu-rm/6_1-2017q1/gcc-arm-none-eabi-6-2017-q1-update-src.tar.bz2?rev=9a8be9e87ddd4841ac76c6ccb81151ba&revision=9a8be9e8-7ddd-4841-ac76-c6ccb81151ba?product=Downloads,Invariant,,Source,6-2017-q1-update"
+    fi
      cp ${COMPILER_DIR}/3rd_party/gcc-arm-none-eabi-6-2017-q1-update-src.tar.bz2 .
      tar -xjf gcc-arm-none-eabi-6-2017-q1-update-src.tar.bz2
      cd gcc-arm-none-eabi-6-2017-q1-update
