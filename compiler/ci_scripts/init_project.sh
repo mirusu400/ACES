@@ -6,8 +6,8 @@ set e, x
 COMPILER_DIR=$(readlink -f `dirname $0`/..)
 PROJECT_ROOT_DIR=`dirname ${COMPILER_DIR}`
 THIS_DIR=`dirname \`readlink -f $0\``
-LLVM_DIR=${PROJECT_ROOT_DIR}/llvm/llvm-release_40
-CLANG_DIR=${PROJECT_ROOT_DIR}/llvm/clang-release_40
+LLVM_DIR=${PROJECT_ROOT_DIR}/llvm/llvm-release_11x
+CLANG_DIR=${PROJECT_ROOT_DIR}/llvm/clang-release_11x
 SYM_LINK='ln -sfn'
 
 
@@ -24,13 +24,13 @@ then
 
   mkdir -p ${PROJECT_ROOT_DIR}/llvm/build
   #  SYM_LINK in clang
-  unzip -o ${COMPILER_DIR}/3rd_party/llvm-release_40.zip -d ${COMPILER_DIR}/../llvm/
+  unzip -o ${COMPILER_DIR}/3rd_party/llvm-release_11x.zip -d ${COMPILER_DIR}/../llvm/
 
 fi
 
 if [ ! -e ${CLANG_DIR} ]
 then
-  unzip -o ${COMPILER_DIR}/3rd_party/clang-release_40.zip -d ${COMPILER_DIR}/../llvm/
+  unzip -o ${COMPILER_DIR}/3rd_party/clang-release_11x.zip -d ${COMPILER_DIR}/../llvm/
   ${SYM_LINK} ${CLANG_DIR} ${LLVM_DIR}/tools/clang
 fi
 
