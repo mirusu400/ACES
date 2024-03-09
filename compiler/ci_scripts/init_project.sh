@@ -68,6 +68,9 @@ then
      cd ${PROJECT_ROOT_DIR}/gcc
   fi
   cd ${PROJECT_ROOT_DIR}/gcc/gcc-arm-none-eabi-6-2017-q1-update/pkg
+  if [ ! -e gcc-arm-none-eabi-6-2018-q3-update-linux.tar.bz2 ]; then
+    cp ${COMPILER_DIR}/3rd_party/gcc-arm-none-eabi-6-2018-q3-update-linux.tar.bz2 .
+  fi
   tar -xjf gcc-arm-none-eabi-6-2018-q3-update-linux.tar.bz2
   mv gcc-arm-none-eabi-6-2018-q3-update ../../bins
   cd ${COMPILER_DIR}
