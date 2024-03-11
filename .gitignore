@@ -1,4 +1,4 @@
 gcc/
-llvm/
+./llvm/
 llvm-release_11x/
 llvm-release_40/
