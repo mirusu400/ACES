@@ -87,5 +87,6 @@ ${SYM_LINK} ${REPO_ROOT}/llvm/MCExperimentPrinter.cpp ${LLVM_DIR}/lib/Target/ARM
 # Done
 ${SYM_LINK} ${REPO_ROOT}/llvm/Instructions.h ${LLVM_DIR}/include/llvm/IR/Instructions.h
 
+${SYM_LINK} ${REPO_ROOT}/llvm/CallSite.h ${LLVM_DIR}/include/llvm/IR/CallSite.h
 # Don't needed?? (File didn't changed even ln)
 # ${SYM_LINK} ${REPO_ROOT}/llvm/SelectionDAGBuilder.cpp ${LLVM_DIR}/lib/CodeGen/SelectionDAG/SelectionDAGBuilder.cpp

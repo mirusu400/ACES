@@ -16,7 +16,6 @@ cmake $1 -GNinja \
        -DLLVM_TARGETS_TO_BUILD="X86;ARM" \
        -DBUILD_SHARED_LIBS=ON  \
        -DLLVM_BINUTILS_INCDIR=/usr/include \
-       -DCMAKE_INSTALL_PREFIX=../bin \
        -DCMAKE_C_FLAGS=-fstandalone-debug \
        -DCMAKE_CXX_FLAGS=-fstandalone-debug \
        -DCMAKE_INSTALL_PREFIX=$2 \

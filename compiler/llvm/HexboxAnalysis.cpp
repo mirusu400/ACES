@@ -18,11 +18,13 @@
 #include "llvm/IR/Instructions.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/raw_ostream.h"
-#include "llvm/Support/Debug.h"
+// #include "llvm/Support/Debug.h"
 #include "llvm/Transforms/Instrumentation.h"
 #include "llvm/ADT/SmallSet.h"
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DebugInfoMetadata.h"
+#include "llvm/Support/CommandLine.h"
+#include "llvm/InitializePasses.h"
 #include "json/json.h"  //From https://github.com/open-source-parsers/jsoncpp
 #include <fstream>
 
@@ -116,7 +118,8 @@ namespace {
                             }else{
                                 assert(false && "Unhandled Constant");
                             }
-                            delete Inst;
+                            // delete Inst;
+                            Inst->deleteValue();
                         }else{
                             add_indirect_calls(*Fnode, F, I, cs);
                         }
@@ -291,7 +294,7 @@ namespace {
             errs()<< "Writing Json Node: " << ss.str() <<"\n";
             writeJsonAttributes(ThisNode["Attr"]);
             for (Function * F : functions){
-                ThisNode["Connections"][F->getName()]["Type"]="Peripheral";
+                ThisNode["Connections"][F->getName().str()]["Type"] = "Data";
             }
 
         }
@@ -501,7 +504,8 @@ namespace {
         }else if (ConstantExpr * C = dyn_cast<ConstantExpr>(V)){
             Instruction *Instr = C->getAsInstruction();
             addr = getConstIntToPtr(Instr,ty);
-            delete(Instr);
+            Instr->deleteValue();
+            // delete(Instr);
         }else{
             return 0;
         }
@@ -567,8 +571,9 @@ namespace {
                  F = I->getFunction();
                  Global = &OutputJsonRoot[GV.getName().str()];
                  add_connection(*Global,F->getName().str(),"Data");
+                 uint64_t size = M.getDataLayout().getTypeAllocSize(GV.getType());
                  (*Global)["Attr"]["Type"]="Global";
-                 (*Global)["Attr"]["Size"] = M.getDataLayout().getTypeAllocSize(GV.getType());
+                 (*Global)["Attr"]["Size"] = size;
                  // Don't know why you use 0 in the getMetadata() below but I've tried a bunch of other options
                  // like Metadata::DIGlobalVariableExpressionKind etc and always get null
                  if ( DIGlobalVariableExpression * DI_GVE = dyn_cast_or_null<DIGlobalVariableExpression>(GV.getMetadata(0)) ){
@@ -613,10 +618,22 @@ namespace {
 
 unsigned HexboxAnalysis::dd_class_id =0;
 char HexboxAnalysis::ID = 0;
-INITIALIZE_PASS_BEGIN(HexboxAnalysis, "HexboxAnaysis", "Performs HexBox LLVM Analysis",false, false)
-INITIALIZE_PASS_END(HexboxAnalysis, "HexboxAnaysis", "Performs HexBox LLVM Analysis",false, false)
 
 
-FunctionPass *llvm::createHexboxAnalysisPass(){
+// I converted macro to function directly
+static void * initializeHexboxAnalysisPassOnce(PassRegistry & Registry) {
+  PassInfo * PI = new PassInfo(
+    "Performs HexBox LLVM Analysis",
+    "HexboxAnaysis", &
+    HexboxAnalysis::ID,
+    PassInfo::NormalCtor_t(callDefaultCtor < HexboxAnalysis > ), false, false);
+  Registry.registerPass( * PI, true);
+  return PI;
+}
+static llvm::once_flag InitializeHexboxAnalysisPassFlag;
+void llvm::initializeHexboxAnalysisPass(PassRegistry & Registry) {
+  llvm::call_once(InitializeHexboxAnalysisPassFlag, initializeHexboxAnalysisPassOnce, std::ref(Registry));
+}
+FunctionPass * llvm::createHexboxAnalysisPass() {
   return new HexboxAnalysis();
 }

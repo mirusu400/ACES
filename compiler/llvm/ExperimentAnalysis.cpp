@@ -32,12 +32,14 @@
 #include <iostream>
 #include "llvm/Analysis/CFLAndersAliasAnalysis.h"
 #include "llvm/Analysis/TypeBasedAliasAnalysis.h"
-
 #include "llvm/IR/InstIterator.h"
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/Analysis/BasicAliasAnalysis.h"
 #include "llvm/Analysis/GlobalsModRef.h"
 #include "llvm/Analysis/ScalarEvolutionAliasAnalysis.h"
+#include "llvm/Support/CommandLine.h"
+#include "llvm/InitializePasses.h"
+// #include "llvm/LinkAllPasses.h"
 
 using namespace llvm;
 
@@ -189,14 +191,27 @@ namespace {
 
 }
 char ExperimentAnalysis::ID = 0;
-INITIALIZE_PASS_BEGIN(ExperimentAnalysis, "ExperimentAnalysis", "Performs LLVM Analysis",false, false)
-INITIALIZE_PASS_DEPENDENCY(AAResultsWrapperPass)
-INITIALIZE_PASS_DEPENDENCY(GlobalsAAWrapperPass)
-INITIALIZE_PASS_DEPENDENCY(CFLAndersAAWrapperPass)
-INITIALIZE_PASS_END(ExperimentAnalysis, "ExperimentAnalysis", "Performs LLVM Analysis",false, false)
+// INITIALIZE_PASS_BEGIN(ExperimentAnalysis, "ExperimentAnalysis", "Performs LLVM Analysis",false, false)
+// INITIALIZE_PASS_DEPENDENCY(AAResultsWrapperPass)
+// INITIALIZE_PASS_DEPENDENCY(GlobalsAAWrapperPass)
+// INITIALIZE_PASS_DEPENDENCY(CFLAndersAAWrapperPass)
+// INITIALIZE_PASS_END(ExperimentAnalysis, "ExperimentAnalysis", "Performs LLVM Analysis",false, false)
+
+static void * initializeExperimentAnalysisPassOnce(PassRegistry & Registry) {
+  initializeAAResultsWrapperPassPass(Registry);
+  initializeGlobalsAAWrapperPassPass(Registry);
+  initializeCFLAndersAAWrapperPassPass(Registry);
+  PassInfo * PI = new PassInfo("Performs LLVM Analysis", "ExperimentAnalysis", & ExperimentAnalysis::ID, PassInfo::NormalCtor_t(callDefaultCtor < ExperimentAnalysis > ), false, false);
+  Registry.registerPass( * PI, true);
+  return PI;
+}
+static llvm::once_flag InitializeExperimentAnalysisPassFlag;
+void llvm::initializeExperimentAnalysisPass(PassRegistry & Registry) {
+  llvm::call_once(InitializeExperimentAnalysisPassFlag, initializeExperimentAnalysisPassOnce, std::ref(Registry));
+}
 
 
 FunctionPass *llvm::createExperimentAnalysisPass(){
-  DEBUG(errs() << "Hexbox Pass" <<"\n");
+//   DEBUG(errs() << "Hexbox Pass" <<"\n");
   return new ExperimentAnalysis();
 }

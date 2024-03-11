@@ -19,13 +19,16 @@
 #include "llvm/Support/raw_ostream.h"
 #include <fstream>
 #include <iostream>
-#include "llvm/Support/Debug.h"
+// #include "llvm/Support/Debug.h"
 #include "llvm/Transforms/Instrumentation.h"
 #include "llvm/ADT/SmallSet.h"
 #include "llvm/ADT/DenseSet.h"
 #include "llvm/Support/FileSystem.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/InlineAsm.h"
+#include "llvm/Support/CommandLine.h"
+#include "llvm/InitializePasses.h"
+// #include "llvm/PassSupport.h"
 #include "json/json.h" //From https://github.com/open-source-parsers/jsoncpp
 
 using namespace llvm;
@@ -91,16 +94,16 @@ namespace {
 
 
 
-        DEBUG(errs() << "Building Compartment Global Variables---------------------\n");
+        // Debug((errs() << "Building Compartment Global Variables---------------------\n");
 
 
         for(auto CompName: comps.getMemberNames()){
-            DEBUG(std::cout << "Compartment: "<< CompName);
+            // Debug((std::cout << "Compartment: "<< CompName);
             Json::Value Attrs = comps[CompName]["Attrs"];
             Json::Value Addrs = comps[CompName]["Addrs"];
             Json::Value Priv = root["Compartments"][CompName]["Priv"];
-            DEBUG(std::cout << Attrs <<"\n");
-            DEBUG(std::cout << Addrs <<"\n");
+            // Debug((std::cout << Attrs <<"\n");
+            // Debug((std::cout << Addrs <<"\n");
 
             /* Build MPU Regions */
             SmallVector<Constant *,16> MPURegionsVec;
@@ -135,7 +138,7 @@ namespace {
             GlobalVariable * Compartment = new GlobalVariable(M,CompTy,true, GlobalVariable::ExternalLinkage,CompInit,"_hexbox_comp_"+CompName);
             Compartment->setSection(".rodata");
 
-            DEBUG(errs() << "Adding: "<<CompName<< "CompName: "<<Compartment->getName() << "\n");
+            // Debug((errs() << "Adding: "<<CompName<< "CompName: "<<Compartment->getName() << "\n");
 
             CompName2GVMap.insert(std::make_pair(CompName,Compartment));
 
@@ -152,9 +155,9 @@ namespace {
         }else{
             itr = CompName2GVMap.find("__hexbox_default");
             if (itr != CompName2GVMap.end()){
-                DEBUG(errs() << "Looking up: "<< F->getName() << "\n");
-                DEBUG(errs() << "Section: " <<F->getSection() << "\n");
-                DEBUG(errs() << "Returning Default Comp\n");
+                // Debug((errs() << "Looking up: "<< F->getName() << "\n");
+                // Debug((errs() << "Section: " <<F->getSection() << "\n");
+                // Debug((errs() << "Returning Default Comp\n");
                 return itr->second;
 
             }else{
@@ -184,7 +187,7 @@ namespace {
         IRBuilder<> *IRB;
         assert(OrgMain && "Main not found");
         OrgMain->setName("__original_main");
-        DEBUG(OrgMain->getFunctionType()->dump());
+        // Debug((OrgMain->getFunctionType()->dump());
 
         InitMain = Function::Create(OrgMain->getFunctionType(),OrgMain->getLinkage(),"main",&M);
         InitMain->addFnAttr(Attribute::NoUnwind);
@@ -307,18 +310,18 @@ namespace {
             Json::Value Region = PolicyRegions[RegionName];
             Json::Value region_type = Region["Type"];
             if ( region_type.compare("Data") == 0 ){
-                DEBUG(std::cout << "Initializing Data Region\n");
+                // Debug((std::cout << "Initializing Data Region\n");
                 //std::string DataSection(RegionName+"_data");
                 //std::string BSSSection(RegionName+"_bss");
                 bool DataUsed = false;
                 bool BSSUsed = false;
 
                 for (auto gvName : Region.get("Objects","")){
-                     DEBUG(std::cout << gvName.asString() <<"\n");
+                     // Debug((std::cout << gvName.asString() <<"\n");
                      GlobalVariable *GV;
                      GV = M.getGlobalVariable(StringRef(gvName.asString()),true);
                      if (GV){
-                         DEBUG(errs() << "Adding "<<GV->getName() << " to ");
+                         // Debug((errs() << "Adding "<<GV->getName() << " to ");
                          if ( GV->hasInitializer() ){
                              if (GV->getInitializer()->isZeroValue()){
                                 BSSUsed=true;
@@ -330,7 +333,7 @@ namespace {
                          }
                      }
                      else{
-                         DEBUG(std::cout << "No Name GV for: "<< gvName <<"\n");
+                         // Debug((std::cout << "No Name GV for: "<< gvName <<"\n");
                      }
                  }//for
                 if(BSSUsed){
@@ -466,7 +469,7 @@ namespace {
             ci->setHexboxMetadata(md);
             for (Function * callee : callees){
                 //callee->setIsHexboxEntry(true);
-                DEBUG(errs() << "\t" <<callee->getName() << ";");
+                // Debug((errs() << "\t" <<callee->getName() << ";");
                 callee->addFnAttr("HexboxEntry","true");
 
             }
@@ -495,7 +498,10 @@ namespace {
             }else{
                 assert(false && "Unhandled Constant");
             }
-            delete Inst;
+            
+            // delete Inst;
+            // Delete using deleteValue()
+            Inst->deleteValue();
         }else{
 
             getIndirectTargets(M, cs, callees);
@@ -525,11 +531,11 @@ namespace {
          }
 
         for (Function * F :InstrumentCallees){
-            DEBUG(errs() << "sections: " << CurFunct->getSection() << " ; " );
-            DEBUG(errs() << F->getName() << ":" << F->getSection() << "\n");
+            // Debug((errs() << "sections: " << CurFunct->getSection() << " ; " );
+            // Debug((errs() << F->getName() << ":" << F->getSection() << "\n");
             if (F->getSection() != CurFunct->getSection()){
                 addTransition(M,cs, callees);
-                DEBUG(errs() << "Adding Transition\n");
+                // Debug((errs() << "Adding Transition\n");
                 return true;
             }
         }
@@ -643,14 +649,14 @@ namespace {
             if (F.isIntrinsic() || F.isDeclaration()||F.getName().startswith("__hexbox")){
                 continue;
             }
-            DEBUG(errs() << "___________________________________________\n");
-            DEBUG(errs().write_escaped(F.getName())<<"\n");
+            // Debug((errs() << "___________________________________________\n");
+            // Debug((errs().write_escaped(F.getName())<<"\n");
             for ( BasicBlock &BB : F ){
                 for ( Instruction & I : BB ){
                     if ( CallSite cs = CallSite(&I) ){
                         if (!isa<InlineAsm>(cs.getCalledValue())){
-                            DEBUG(errs() << "Checking Callsite: ");
-                            DEBUG(cs->dump());
+                            // Debug((errs() << "Checking Callsite: ");
+                            // Debug((cs->dump());
                             isTransition(M,&F,cs);
                             if(F.getSection().equals(StringRef(".IRQ_CODE_REGION"))&& \
                                     (! F.getName().equals("SVC_Handler"))){
@@ -661,7 +667,7 @@ namespace {
                 }
             }
 
-            DEBUG(errs() << "-------------------------------------------\n");
+            // Debug((errs() << "-------------------------------------------\n");
         }
 
     }
@@ -709,12 +715,19 @@ namespace {
 
 }
 char HexboxApplication::ID = 0;
-INITIALIZE_PASS(HexboxApplication, "HexboxApplication", "Applies specified hexbox policy", false, false)
-
-
+// INITIALIZE_PASS(HexboxApplication, "HexboxApplication", "Applies specified hexbox policy", false, false)
+static void * initializeHexboxApplicationPassOnce(PassRegistry & Registry) {
+  PassInfo * PI = new PassInfo("Applies specified hexbox policy", "HexboxApplication", & HexboxApplication::ID, PassInfo::NormalCtor_t(callDefaultCtor < HexboxApplication > ), false, false);
+  Registry.registerPass( * PI, true);
+  return PI;
+}
+static llvm::once_flag InitializeHexboxApplicationPassFlag;
+void llvm::initializeHexboxApplicationPass(PassRegistry & Registry) {
+  llvm::call_once(InitializeHexboxApplicationPassFlag, initializeHexboxApplicationPassOnce, std::ref(Registry));
+}
 
 ModulePass *llvm::createHexboxApplicationPass(){
-  DEBUG(errs() << "Hexbox Application Pass" <<"\n");
+  // DEBUG(errs() << "Hexbox Application Pass" <<"\n");
   return new HexboxApplication();
 }
 
