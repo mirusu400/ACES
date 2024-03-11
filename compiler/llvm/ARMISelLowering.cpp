@@ -2599,10 +2599,10 @@ ARMTargetLowering::LowerCall(TargetLowering::CallLoweringInfo &CLI,
           //errs()<<"Checking for metadata\n";
           Call_Metadata = ci->getHexboxMetadata();
           if (Call_Metadata){
-              DEBUG(errs() << "Replacing Call with Hexbox_Entry\n");
-              DEBUG(errs() << "Function: ");
-              DEBUG(errs().write_escaped(ci->getParent()->getParent()->getName()) <<"\n");
-              DEBUG(ci->dump());
+              // DEBUG(errs() << "Replacing Call with Hexbox_Entry\n");
+              // DEBUG(errs() << "Function: ");
+              // DEBUG(errs().write_escaped(ci->getParent()->getParent()->getName()) <<"\n");
+              // DEBUG(ci->dump());
 
 
               CallOpc = ARMISD::HEXBOX_Entry;

@@ -63,6 +63,7 @@ then
      cd src
      find -name '*.tar.*' | xargs -I% tar -xf %
      cd ..
+     cp -rf ${COMPILER_DIR}/3rd_party/errors.h ${PROJECT_ROOT_DIR}/gcc/gcc-arm-none-eabi-6-2017-q1-update/src/binutils/gold/errors.h
      ./build-prerequisites.sh --skip_steps=mingw32
      ./build-toolchain.sh --skip_steps=mingw32
      cd ${PROJECT_ROOT_DIR}/gcc
